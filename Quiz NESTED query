@@ -1,0 +1,160 @@
+--Write a query to find the names of all customers who have bought tracks of the 'Rock' genre. How many are there?
+
+select count(*) from (Select distinct c.customerid,c.firstname,c.lastname from genres g
+inner join tracks t on g.genreId = t.genreId
+inner join invoice_items it on it.trackId = t.trackId
+inner join invoices i on it.invoiceId = i.invoiceId
+inner join customers c on i.customerid = c.customerid
+where g.name ='Rock')
+
+--Write a query to find the title of albums that have tracks with a unit price higher than the average unit price of all tracks. How many are there?
+
+Select Count(Distinct A.AlbumID) from Tracks T, Albums A 
+where T.AlbumID = A.AlbumID
+And T.UnitPrice >= (Select Round(Avg(TC.UnitPrice),2) from Tracks TC)
+
+--Write a query to find the name of artists who have tracks with a duration longer than the average track duration.
+
+Select Distinct AT.Name from Tracks T 
+inner join Albums A on T.AlbumID = A.AlbumID
+inner join Artists AT on AT.ArtistID = A.ArtistID
+where T.Milliseconds >= (Select Round(Avg(TC.Milliseconds),2) from Tracks TC)
+--And AT.Name in('Metallica','Deep Purple','Mötley Crüe','BackBeat')
+
+--Write a query to find the names of customers who have bought more than the average number of tracks, ordered by customer first name.
+Select I.CustomerID, C.FirstName,C.LastName from Customers C
+inner join Invoices I on C.CustomerID = I.CustomerID
+inner join Invoice_Items IT on IT.InvoiceID = I.InvoiceID
+Group By C.CustomerID, C.FirstName,C.LastName
+Having Count(IT.TrackID)>(Select Round(Avg(A.TrackAmount),2) from (Select Count(I.TrackID) TrackAmount, I.InvoiceID from Invoice_items I 
+ group By I.InvoiceID
+) A)
+order by C.FirstName desc
+
+Write a query to find the name of the genres that have more tracks than the average number of tracks per genre. How many are there?
+
+Select Count(CT.GenreId) from
+(Select tk.GenreId, Gen.Name from Tracks tk
+inner join Genres Gen on Gen.GenreId = tk.GenreId
+Group By tk.GenreId,Gen.Name
+Having Count(tk.TrackID) >= (Select Round(avg(genID.trakAmount),2) AvegAmount from (Select Count(T.TrackID) trakAmount,T.GenreId from Tracks t
+group by t.GenreId) genID)
+order by tk.GenreId
+) CT
+--Having Count(tk.TrackID)
+
+Select G.GenreId,G.Name from Genres G
+inner join Tracks Tk on Tk.GenreId = G.GenreId
+group by G.GenreId,G.Name
+Having (tk.TrackID) >= (Select Round(avg(genID.trakAmount),2) AvegAmount from (Select Count(T.TrackID) trakAmount,T.GenreId from Tracks t
+group by t.GenreId) genID)
+
+
+--Write a query to find the name of the genre that has the most tracks. What is it?
+Select G.GenreID, G.Name from Genres G inner join (Select Max(GT.amount),GT.GenreID from (
+Select Count(T.TrackID) amount,T.GenreID from Tracks T 
+group by genreID
+) as GT) Temp where Temp.GenreID= G.GenreID
+
+
+---Write a query to find the artists whose albums have more than the average number of tracks. How many are there?
+
+Select Round(Avg(TP.TrakAmoun),2) from 
+(Select Count(T.TrackID) TrakAmoun, t.AlbumID from tracks t
+group by t.AlbumID
+) As TP
+
+Select from tracks tk 
+inner join albums A on tk.AlbumID = A.AlbumID
+inner join Artists AR on A.ArtistID = A.ArtistID
+Group by tk.AlbumID,AR.ArtistID
+
+Select Count(A.ArtistID), A.albumID from Albums A
+inner join Artists AR on A.ArtistID = AR.ArtistID
+Group By A.albumID
+having Count(A.ArtistID)>1
+
+Select Count(t.TrackID),T.AlbumID, A.Title from Tracks t
+inner join Albums A on A.AlbumID = T.AlbumID
+inner join 
+group by t.AlbumID
+
+Select ar.ArtistID,a.Name from albums ar
+inner join Artists a on A.ArtistID = ar.ArtistID
+group by ar.ArtistID,a.Name
+Having count(ar.albumID) > (Select Round(Avg(TP.TrakAmoun),2) from 
+(Select Count(T.TrackID) TrakAmoun, t.AlbumID from tracks t
+ group by t.AlbumID ) As TP
+)
+
+select Count(al.albumID) album, A.ArtistID,a.Name from Artists  A
+inner join albums al on A. ArtistID = al.ArtistID
+group by A.ArtistID,A.ArtistID,a.Name
+Having count(al.albumID) > (Select Round(Avg(TP.TrakAmoun),2) from 
+(Select Count(T.TrackID) TrakAmoun, t.AlbumID from tracks t
+group by t.AlbumID ) As TP
+)
+
+
+
+-- Select Count(t.TrackID),T.AlbumID, A.Title, Ar.Name from Tracks t
+-- inner join Albums A on A.AlbumID = T.AlbumID
+-- inner join Artists ar on ar.ArtistID = A.albumID
+-- group by t.AlbumID,A.Title,Ar.Name
+
+
+-- Select count(ArtistID),ArtistID  from Albums
+-- group by albumID
+-- having count(ArtistID)>= 2
+
+--Write a query to find the first and last name of a customer who has spent the highest total invoice amount.
+
+select max(a.mamount),a.CustomerId,a.firstName,a.LastName from (select round(sum(i.total),2) mamount,i.CustomerId,c.firstName,c.LastName from invoices i
+inner join customers c on c.CustomerId= i.CustomerId
+group by i.CustomerId,c.firstName,c.LastName
+order by i.CustomerId) a
+
+
+--Write a query to find the names of all customers who have bought tracks from the artist 'Iron Maiden'. How many are there?
+
+Select *from tracks t
+inner join albums a on t.albumid = a.albumid
+inner join artists ar on ar.artistId = a.artistId
+where ar.Name ='Iron Maiden'
+
+select distinct t.trackid from Artists ar
+inner join albums a on a.artistId = ar.artistId
+inner join tracks t on t.albumid = t.albumid
+where ar.Name ='Iron Maiden'
+
+select count(*)from (
+select distinct i.customerid,c.firstname,c.lastname from albums t
+inner join tracks at1 on t.albumid = at1.albumid
+inner join invoice_items itm on itm.trackid = at1.trackid
+inner join Invoices i on i.invoiceId = itm.invoiceId
+inner join Customers c on c.customerid = i.customerid
+where t.artistId =90) temp
+
+--Write a query to find the names of all tracks that are longer than the longest track of the artist 'Iron Maiden' and start with the letter ‘M’. How many are there?
+
+select count(*) from tracks trt
+where trt.Milliseconds > (
+select Max(t.Milliseconds) from artists a
+inner join albums al on al.artistid = a.artistid
+inner join tracks t on t.albumid = al.albumid
+where a.name = 'Iron Maiden')
+and  trt.name like 'M%'
+
+--Write a query to find the names of all tracks that are no longer than (≤) the shortest track of the 'Rock' genre. How many are there?
+
+select *from tracks tt 
+where tt.Milliseconds <= (
+
+select min(Milliseconds) from genres g
+inner join tracks t on g.genreid =t.genreid
+where g.name = 'Rock')
+
+
+
+
+

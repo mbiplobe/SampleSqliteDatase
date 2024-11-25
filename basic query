@@ -1,0 +1,30 @@
+--Write an SQL query to find the names of all the employees from the city of Calgary.
+
+Select *from employees where city='Calgary';
+
+--Write an SQL query to find the records of all customers in the country of Brazil.
+
+Select *from customers where country='Brazil'
+
+--Write an SQL query to find all albums with “Piano” in the title. 
+Select *from albums where title like '%Piano%'
+
+--Write an SQL query to find all tracks whose Composer is either ‘May’ or ‘Sykes’.
+
+Select *from tracks where Composer='May' Or Composer='Sykes'
+
+--Write an SQL query to find all Customers whose email address includes ‘yahoo’. This means yahoo.com, yahoo.ca, yahoo.in, etc.
+
+Select *from Customers where Email like '%yahoo%' and country='Bangalore'
+
+--Write an SQL query to find all Invoices with a Total between 9 and 12.
+
+Select *from Invoices where InvoiceID between 9 and 12 
+
+--Write an SQL query to find all invoices with an Invoice Date before March 14, 2009.
+
+select distinct BillingCountry  from invoices where Date(InvoiceDate) < Date('2009-03-14')
+
+--Use an SQL query to count the albums in the database. 
+Select count(albumID) from albums 
+

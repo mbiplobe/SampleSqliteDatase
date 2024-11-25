@@ -1,0 +1,187 @@
+
+--Write a SQL query that lists the names of all tracks and the name of the album they are from, sorted in ascending order of track name.
+
+Select T.Name,A.Title    from Tracks T 
+inner join Albums A on T.AlbumId = A.AlbumId order by T.Name asc
+
+--Write a SQL query to find all customer names and the total of their respective invoices for customers whose first name starts with ‘J’.
+
+Select Count(*) from (
+Select round(Sum(I.Total),2) mark,I.CustomerID,C.FirstName,C.LastName from Invoices I
+inner join Customers C on C.CustomerID = I.CustomerID
+where C.FirstName like 'J%'
+group by I.CustomerID,C.FirstName,C.LastName
+) M
+
+Select *from (Select round(Sum(I.Total),2) mark,I.CustomerID,C.FirstName,C.LastName from Invoices I
+inner join Customers C on C.CustomerID = I.CustomerID
+where C.FirstName like 'J%'
+group by I.CustomerID,C.FirstName,C.LastName) P1,(Select round(Sum(I.Total),2) mark,I.CustomerID,C.FirstName,C.LastName from Invoices I
+inner join Customers C on C.CustomerID = I.CustomerID
+where C.FirstName like 'J%'
+group by I.CustomerID,C.FirstName,C.LastName) P2
+where p1.CustomerID != p2.CustomerID and p1.FirstName = p2.FirstName
+
+
+--Write a SQL query to list the names of all playlists and the tracks contained in them without any duplicate pairs.
+Select distinct p.Name playList, T.Name TrackName from playlists p 
+inner join playlist_track pt on p.PlaylistId = pt.PlaylistId
+inner join tracks t on t.trackID = pt.trackID
+
+--Write an SQL query to list the names of all playlists and the artists on all the tracks in each playlist, without any duplicate pairs. You’ll need to look at albums as well to get this information.
+
+Select Count(*) from (
+Select distinct P.Name PlayList,Ar.Name ArtistName from playlists P
+inner join playlist_track pt on P.PlaylistId = pt.PlaylistId
+inner join tracks t on t.TrackId = pt.TrackId
+inner join albums A on t.albumID = A.albumID
+inner join artists Ar on A.ArtistId = Ar.ArtistId
+)
+
+
+
+
+
+-- Select distinct Temp1.Name, Temp2.Name from (Select L.PlayListID, Count(A.ArtistId)as cnt,L.Name  from PlayLists L
+-- inner join playlist_track PT on L.PlayListID = PT.PlayListID
+-- inner join Tracks T on T.TrackID = PT. TrackID
+-- inner join Albums A on A.albumid = T.albumid 
+-- --where L.PlayListID= 14
+-- Group by L.PlayListID order by L.PlayListID,L.Name asc) Temp1, (Select L.PlayListID, Count(A.ArtistId) cnt,L.Name  from PlayLists L
+-- inner join playlist_track PT on L.PlayListID = PT.PlayListID
+-- inner join Tracks T on T.TrackID = PT. TrackID
+-- inner join Albums A on A.albumid = T.albumid 
+-- --where L.PlayListID= 14
+-- Group by L.PlayListID order by L.PlayListID,L.Name asc) Temp2
+-- where Temp1.PlayListID != Temp2.PlayListID and Temp1.cnt = Temp2.cnt
+
+--Write an SQL query to count the number of distinct tracks and distinct artists involved in each playlist. Note that you can use the DISTINCT keyword inside of an aggregation function.
+Select Count(distinct Pt.TrackID) TrackAmount,Count(Distinct A.ArtistId),pt.PlayListID,P.Name PlayList from playlists p
+inner join playlist_track pt on p.PlayListID = pt.PlayListID
+inner join Tracks T on t.TrackID = pt.TrackID
+inner join Albums A on A.albumid = T.albumid
+inner join Artists Ar on Ar.ArtistId = A.ArtistId
+Group by pt.PlayListID,P.Name 
+
+--Which playlist has the most distinct tracks?
+
+Select Max(P.TrackAmount),PlayList from (
+Select Count(distinct Pt.TrackID) TrackAmount,Count(Distinct A.ArtistId),pt.PlayListID,P.Name PlayList from playlists p
+inner join playlist_track pt on p.PlayListID = pt.PlayListID
+inner join Tracks T on t.TrackID = pt.TrackID
+inner join Albums A on A.albumid = T.albumid
+inner join Artists Ar on Ar.ArtistId = A.ArtistId
+Group by pt.PlayListID,P.Name
+) P
+
+--Which playlist with more than 1 track has the fewest distinct tracks?
+Select Min(PTY.TrackAmount),PTY.playlist from (
+Select Count(distinct Pt.TrackID) TrackAmount,Count(Distinct A.ArtistId),pt.PlayListID,P.Name PlayList from playlists p
+inner join playlist_track pt on p.PlayListID = pt.PlayListID
+inner join Tracks T on t.TrackID = pt.TrackID
+inner join Albums A on A.albumid = T.albumid
+inner join Artists Ar on Ar.ArtistId = A.ArtistId
+where P.Name in('Brazilian Music','Classical','Grunge','Music','Music Videos')
+Group by pt.PlayListID,P.Name 
+Having  Count(distinct Pt.TrackID) > 1
+order by Count(distinct Pt.TrackID) desc
+) PTY
+
+--Mark the two playlists that have the same number of artists. 
+Select PT1.PlayList,PT2.PlayList from 
+(Select Count(distinct Pt.TrackID) TrackAmount,Count(Distinct A.ArtistId) ArtistCount,pt.PlayListID,P.Name PlayList from playlists p
+inner join playlist_track pt on p.PlayListID = pt.PlayListID
+inner join Tracks T on t.TrackID = pt.TrackID
+inner join Albums A on A.albumid = T.albumid
+inner join Artists Ar on Ar.ArtistId = A.ArtistId
+where P.Name in('Brazilian Music',
+'Classical',
+'Classical 101 - Deep Cuts',
+'Classical 101 - Next Steps',
+'Classical 101 - The Basics',
+'Heavy Metal Classic')
+Group by pt.PlayListID,P.Name 
+order by Count(distinct Pt.TrackID) desc
+) PT1, (Select Count(distinct Pt.TrackID) TrackAmount,Count(Distinct A.ArtistId) ArtistCount,pt.PlayListID,P.Name PlayList from playlists p
+inner join playlist_track pt on p.PlayListID = pt.PlayListID
+inner join Tracks T on t.TrackID = pt.TrackID
+inner join Albums A on A.albumid = T.albumid
+inner join Artists Ar on Ar.ArtistId = A.ArtistId
+where P.Name in('Brazilian Music',
+'Classical',
+'Classical 101 - Deep Cuts',
+'Classical 101 - Next Steps',
+'Classical 101 - The Basics',
+'Heavy Metal Classic')
+Group by pt.PlayListID,P.Name 
+order by Count(distinct Pt.TrackID) desc
+) PT2
+where PT1.PlayListID != PT2.PlayListID
+and PT1.ArtistCount = PT2.ArtistCount
+
+
+-- --How many tracks were sold in the earliest invoice? 
+Select Count(distinct ii.trackID) totalTrack,i.InvoiceID,i.InvoiceDate from invoice_items ii
+inner join Invoices i on i.InvoiceID = ii.InvoiceID
+where i.InvoiceDate = (Select  min(InvoiceDate) from invoices)
+group by ii.InvoiceID,i.InvoiceDate
+order by i.InvoiceDate desc 
+
+--How many tracks were sold in the latest invoice?
+Select Count(distinct ii.trackID) totalTrack,i.InvoiceID,i.InvoiceDate from invoice_items ii
+inner join Invoices i on i.InvoiceID = ii.InvoiceID
+where i.InvoiceDate = (Select  Max(InvoiceDate) from invoices)
+group by ii.InvoiceID,i.InvoiceDate
+order by i.InvoiceDate desc 
+
+--Write a SQL query to find the number of distinct artists of the tracks sold in each invoice.
+Select Max(T.totalArtistId),T.InvoiceID from (Select Count(distinct A.ArtistID) totalArtistId,i.InvoiceID from invoice_items ii
+inner join Invoices i on i.InvoiceID = ii.InvoiceID
+inner join tracks t on t.trackID = ii.trackID
+inner join Albums A on A.AlbumID = T.AlbumID
+group by ii.InvoiceID
+order by i.InvoiceDate desc) T
+
+--How many rows are in the result? 
+Select Count(distinct A.ArtistID) totalArtistId,i.InvoiceID from invoice_items ii
+inner join Invoices i on i.InvoiceID = ii.InvoiceID
+inner join tracks t on t.trackID = ii.trackID
+inner join Albums A on A.AlbumID = T.AlbumID
+group by ii.InvoiceID
+order by ii.InvoiceID asc
+
+
+--How many distinct genres were sold in invoice ID 138? 
+Select count(*) from (
+Select distinct g.Name, i.invoiceID from Invoices i 
+inner join  Invoice_Items it on it.InvoiceId = i.invoiceID
+inner join Tracks T on it.TrackID = T.TrackID
+inner join genres g on T.genreID = g.genreID
+where it.invoiceID = 40
+)
+
+-- --Write a SQL query to list each customer’s name, the name of the employee that is their support representative, and the employee’s job title. You may add WHERE conditions as needed to answer the following.
+Select C.FirstName||' '||C.LastName CustomerName, E.FirstName||' '||E.LastName EmployeeName,E.Title JobTitle from Customers C
+inner join Employees E on C.SupportRepId= E.EmployeeID
+inner join Invoices I on I.CustomerID = C.CustomerID
+
+
+-- --Who was the support representative for invoice ID 100?
+Select C.FirstName||' '||C.LastName CustomerName, E.FirstName||' '||E.LastName EmployeeName,E.Title JobTitle from Customers C
+inner join Employees E on C.SupportRepId= E.EmployeeID
+inner join Invoices I on I.CustomerID = C.CustomerID
+where I.InvoiceId =100
+
+
+--How many customers have the same first name as their support representative?
+Select count(C.FirstName||' '||C.LastName) CustomerName, Count(E.FirstName||' '||E.LastName) EmployeeName from Customers C
+inner join Employees E on C.SupportRepId= E.EmployeeID
+inner join Invoices I on I.CustomerID = C.CustomerID
+where E.FirstName = C.FirstName
+
+
+
+
+
+
+  
