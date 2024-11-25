@@ -1,2 +1,2 @@
 # Digital Media Store
-This project are designed based on courera's course of Introduction to Relational Databases.
+Media related data was created using real data from an iTunes Library. It is possible for you to use your own iTunes Library to generate the SQL scripts, see instructions below. Customer and employee information was manually created using fictitious names, addresses that can be located on Google maps, and other well formatted data (phone, fax, email, etc.). Sales information is auto generated using random data for a four year period.
